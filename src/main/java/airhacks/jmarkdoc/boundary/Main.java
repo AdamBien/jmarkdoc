@@ -10,6 +10,7 @@ import java.util.Set;
 
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -129,12 +130,12 @@ public interface Main {
             // they surface as (ignored) diagnostics and error types.
             task.analyze();
 
-            var includedTypes = collectTypes(compilationUnits, docTrees);
-            if (includedTypes.isEmpty()) {
+            var includedElements = collectElements(compilationUnits, docTrees);
+            if (includedElements.isEmpty()) {
                 return false;
             }
 
-            var environment = docletEnvironment(task, docTrees, files, includedTypes);
+            var environment = docletEnvironment(task, docTrees, files, includedElements);
             var doclet = new MarkdownDoclet();
             doclet.init(Locale.getDefault(), silentReporter());
             applyOutput(doclet, outputDir);
@@ -143,24 +144,33 @@ public interface Main {
     }
 
     /// Walks every parsed compilation unit and resolves the {@link TypeElement}
-    /// for each declared (top-level and nested) type, so nested types are
-    /// documented in their own files exactly as the javadoc tool would.
-    private static Set<TypeElement> collectTypes(Iterable<? extends com.sun.source.tree.CompilationUnitTree> units,
+    /// for each declared (top-level and nested) type, plus the
+    /// {@link PackageElement} of each `package-info.java`, so nested types and
+    /// package documentation are emitted exactly as the javadoc tool would.
+    private static Set<Element> collectElements(Iterable<? extends com.sun.source.tree.CompilationUnitTree> units,
             DocTrees docTrees) {
-        var types = new LinkedHashSet<TypeElement>();
+        var elements = new LinkedHashSet<Element>();
         var scanner = new TreePathScanner<Void, Void>() {
             @Override
             public Void visitClass(ClassTree node, Void unused) {
                 if (docTrees.getElement(getCurrentPath()) instanceof TypeElement type) {
-                    types.add(type);
+                    elements.add(type);
                 }
                 return super.visitClass(node, unused);
+            }
+
+            @Override
+            public Void visitPackage(com.sun.source.tree.PackageTree node, Void unused) {
+                if (docTrees.getElement(getCurrentPath()) instanceof PackageElement documentedPackage) {
+                    elements.add(documentedPackage);
+                }
+                return super.visitPackage(node, unused);
             }
         };
         for (var unit : units) {
             scanner.scan(unit, null);
         }
-        return types;
+        return elements;
     }
 
     /// Feeds the `--output` directory to the doclet through its public option,
@@ -178,18 +188,18 @@ public interface Main {
     /// element and type utilities, and the doc-comment trees; the rest return
     /// the most permissive sensible defaults.
     private static DocletEnvironment docletEnvironment(JavacTask task, DocTrees docTrees,
-            JavaFileManager fileManager, Set<TypeElement> includedTypes) {
+            JavaFileManager fileManager, Set<Element> includedElements) {
         var elementUtils = task.getElements();
         var typeUtils = task.getTypes();
         return new DocletEnvironment() {
             @Override
             public Set<? extends Element> getSpecifiedElements() {
-                return includedTypes;
+                return includedElements;
             }
 
             @Override
             public Set<? extends Element> getIncludedElements() {
-                return includedTypes;
+                return includedElements;
             }
 
             @Override
@@ -209,7 +219,7 @@ public interface Main {
 
             @Override
             public boolean isIncluded(Element element) {
-                return includedTypes.contains(element);
+                return includedElements.contains(element);
             }
 
             @Override

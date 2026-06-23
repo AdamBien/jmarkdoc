@@ -7,12 +7,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.ModuleElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -79,6 +81,13 @@ public final class MarkdownDoclet implements Doclet {
                 var markdown = renderType(type, docReader);
                 writer.write(writer.pathFor(packageName, type.getSimpleName().toString()), markdown);
             }
+            for (var documentedPackage : documentedPackages(environment)) {
+                var packageName = documentedPackage.getQualifiedName().toString();
+                var markdown = renderPackage(documentedPackage, docReader);
+                if (markdown.isPresent()) {
+                    writer.write(writer.pathFor(packageName, "package-info"), markdown.get());
+                }
+            }
             return true;
         } catch (IOException writing) {
             if (this.reporter != null) {
@@ -87,6 +96,75 @@ public final class MarkdownDoclet implements Doclet {
             }
             return false;
         }
+    }
+
+    /**
+     * Discovers every package that may carry {@code package-info.java}
+     * documentation, in deterministic (sorted) order. The {@code javadoc} tool
+     * only includes packages that directly contain documented types, so a parent
+     * package whose documentation lives in {@code package-info.java} (and which
+     * holds only sub-packages) never appears in {@code getIncludedElements()}.
+     * This widens the search to the packages explicitly included, every ancestor
+     * package of an included type, and — for modular sources — every package
+     * enclosed by a specified module. {@link #renderPackage} then keeps only the
+     * ones that actually have a doc comment.
+     */
+    private List<PackageElement> documentedPackages(DocletEnvironment environment) {
+        var elements = environment.getElementUtils();
+        var names = new TreeSet<String>();
+        for (var type : this.collector.includedTypes(environment)) {
+            addWithAncestors(names, elements.getPackageOf(type).getQualifiedName().toString());
+        }
+        for (var includedPackage : this.collector.includedPackages(environment)) {
+            names.add(includedPackage.getQualifiedName().toString());
+        }
+        for (var specified : environment.getSpecifiedElements()) {
+            if (specified instanceof ModuleElement module) {
+                for (var enclosed : module.getEnclosedElements()) {
+                    if (enclosed instanceof PackageElement enclosedPackage) {
+                        names.add(enclosedPackage.getQualifiedName().toString());
+                    }
+                }
+            }
+        }
+        var packages = new ArrayList<PackageElement>();
+        for (var name : names) {
+            if (name.isEmpty()) {
+                continue;
+            }
+            var resolved = elements.getPackageElement(name);
+            if (resolved != null) {
+                packages.add(resolved);
+            }
+        }
+        return packages;
+    }
+
+    /** Adds {@code packageName} and each of its dotted ancestor prefixes. */
+    private static void addWithAncestors(Set<String> names, String packageName) {
+        var current = packageName;
+        while (current != null && !current.isEmpty()) {
+            names.add(current);
+            var dot = current.lastIndexOf('.');
+            current = dot < 0 ? "" : current.substring(0, dot);
+        }
+    }
+
+    /**
+     * Assembles the Markdown document for a documented package: the heading
+     * block followed by the package description from {@code package-info.java}.
+     * Returns {@link Optional#empty()} when the package carries no description,
+     * so packages without a {@code package-info.java} comment produce no file.
+     */
+    private Optional<String> renderPackage(PackageElement documentedPackage, DocReader docReader) {
+        var description = docReader.fullBody(documentedPackage);
+        if (description.isEmpty()) {
+            return Optional.empty();
+        }
+        var document = new StringBuilder();
+        document.append(MarkdownRenderer.formatPackage(documentedPackage.getQualifiedName().toString()));
+        document.append('\n').append(MarkdownRenderer.escape(description)).append('\n');
+        return Optional.of(document.toString());
     }
 
     /**

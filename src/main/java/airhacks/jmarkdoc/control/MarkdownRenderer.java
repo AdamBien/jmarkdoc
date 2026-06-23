@@ -100,6 +100,36 @@ public final class MarkdownRenderer {
     }
 
     /**
+     * Renders the heading block that opens a package's Markdown document: a
+     * level-1 heading with the package name, a package line, and a {@code kind}
+     * line of {@code package}, mirroring {@link #formatType}. The package name
+     * is rendered verbatim in the heading and as inline code in the package
+     * line.
+     *
+     * <p>The function is pure: deterministic and free of I/O. A {@code null}
+     * package name is treated as an empty string.
+     *
+     * <p>Example output:
+     * <pre>
+     * # com.example.api
+     *
+     * **Package:** `com.example.api`
+     *
+     * **Kind:** `package`
+     * </pre>
+     *
+     * @param packageName the fully qualified package name
+     * @return the rendered Markdown heading block
+     */
+    public static String formatPackage(String packageName) {
+        var block = new StringBuilder();
+        block.append("# ").append(nullToEmpty(packageName)).append("\n\n");
+        block.append("**Package:** `").append(nullToEmpty(packageName)).append("`\n\n");
+        block.append("**Kind:** `package`\n");
+        return block.toString();
+    }
+
+    /**
      * Renders a single field entry as a level-3 heading: the field name and,
      * when present, the field type, both formatted as inline code, followed by
      * the escaped description on its own line when present.
