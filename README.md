@@ -5,27 +5,17 @@ A custom JavaDoc doclet that generates clean Markdown API docs from Java source 
 ## Requirements
 
 - JDK 25+ (the doclet uses the `jdk.javadoc` and `jdk.compiler` modules)
-- No Maven, Gradle, Ant, or third-party libraries — plain `javac`, `jar`, and `javadoc`
+- [zb](https://github.com/AdamBien/zb) on the `PATH` to build the executable JAR — no Maven, Gradle, Ant, or third-party runtime libraries
 
 ## Build and Generate
 
-The supported entry point is `buildAndRun.sh`. It cleans `build/` and `target/`, compiles the doclet, packages `build/jmarkdoc.jar`, then runs `javadoc` with the doclet against the example sources and writes Markdown into `target/api-md`:
-
-```bash
-./buildAndRun.sh
-```
-
-On success it prints the paths of the generated `*.md` files.
-
-## Executable JAR
-
-A doclet is not directly runnable — it is a callback the `javadoc` tool loads and invokes. `airhacks.jmarkdoc.Main` wraps it in a launcher that runs the documentation tool in-process with the doclet baked in, so no doclet arguments are needed. Build the executable JAR with [zb](https://github.com/AdamBien/zb):
+Build the executable JAR with [zb](https://github.com/AdamBien/zb):
 
 ```bash
 zb.sh
 ```
 
-This produces `zbo/jmarkdoc.jar`. Run it with no arguments to document `src/main/java` into `target/site/apidocs` (the default Maven JavaDoc output directory):
+This compiles the sources into `zbo/jmarkdoc.jar`. A doclet is not directly runnable — it is a callback the `javadoc` tool loads and invokes — so `airhacks.jmarkdoc.Main` wraps it in a launcher that runs the documentation tool in-process with the doclet baked in. Run the JAR with no arguments to document `src/main/java` into `target/site/apidocs` (the default Maven JavaDoc output directory):
 
 ```bash
 java -jar zbo/jmarkdoc.jar
@@ -37,15 +27,21 @@ The source and output directories are optional positional arguments:
 java -jar zbo/jmarkdoc.jar src/example/java target/example-md
 ```
 
+The `buildAndRun.sh` convenience script chains both steps — it builds with `zb`, runs the JAR against the bundled example sources, and prints the paths of the generated `*.md` files:
+
+```bash
+./buildAndRun.sh
+```
+
 ## Run Against Your Own Sources
 
-Point the `javadoc` tool at the packaged doclet and your sources:
+The same `zbo/jmarkdoc.jar` doubles as a doclet JAR. Point the `javadoc` tool at it and your sources — for example to plug jMarkDoc into an existing `javadoc` or Maven build:
 
 ```bash
 javadoc \
   -doclet airhacks.jmarkdoc.MarkdownDoclet \
-  -docletpath build/jmarkdoc.jar \
-  --output target/api-md \
+  -docletpath zbo/jmarkdoc.jar \
+  --output target/site/apidocs \
   $(find src/main/java -name '*.java')
 ```
 
@@ -54,6 +50,32 @@ javadoc \
 | Option | Argument | Description |
 | --- | --- | --- |
 | `--output` | `<directory>` | Directory for the generated Markdown. Defaults to the current directory (`.`). |
+
+### Maven
+
+Plug the same JAR into the `maven-javadoc-plugin` as a custom doclet. Point `docletPath` at `zbo/jmarkdoc.jar`, disable the standard doclet options (they do not apply to this doclet), and pass `--output` as an additional option:
+
+```xml
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-javadoc-plugin</artifactId>
+  <configuration>
+    <doclet>airhacks.jmarkdoc.MarkdownDoclet</doclet>
+    <docletPath>${project.basedir}/zbo/jmarkdoc.jar</docletPath>
+    <useStandardDocletOptions>false</useStandardDocletOptions>
+    <additionalOptions>
+      <additionalOption>--output</additionalOption>
+      <additionalOption>${project.build.directory}/site/apidocs</additionalOption>
+    </additionalOptions>
+  </configuration>
+</plugin>
+```
+
+Then generate the Markdown with:
+
+```bash
+mvn javadoc:javadoc
+```
 
 ## Documenting Your Sources
 
