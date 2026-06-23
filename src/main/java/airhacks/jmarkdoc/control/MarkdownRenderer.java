@@ -266,7 +266,33 @@ public final class MarkdownRenderer {
         if (!agentNotes.isEmpty()) {
             entry.append("\n").append(agentNotes);
         }
+        var requirements = renderRequirements(method.customTags().get("requirement"));
+        if (!requirements.isEmpty()) {
+            entry.append("\n").append(requirements);
+        }
         return entry.toString();
+    }
+
+    /**
+     * Renders the {@code @requirement} traceability tags as a level-4
+     * {@code #### Requirements} section, one bullet per occurrence. Each tag
+     * carries a stable EARS requirement id (e.g. {@code R1.2}) linking the
+     * member to its capability spec; the id is emitted as inline code and any
+     * trailing description follows after an em dash. Returns an empty string
+     * when no {@code @requirement} tag is present, so the section is omitted.
+     *
+     * @param requirements the {@code @requirement} tag contents, or {@code null}
+     * @return the rendered Requirements section, or an empty string when none
+     */
+    public static String renderRequirements(List<String> requirements) {
+        if (requirements == null || requirements.isEmpty()) {
+            return "";
+        }
+        var block = new StringBuilder("#### Requirements\n\n");
+        for (var requirement : requirements) {
+            block.append(formatNamedListTag(requirement)).append('\n');
+        }
+        return block.toString();
     }
 
     /**

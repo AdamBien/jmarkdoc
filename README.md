@@ -145,6 +145,23 @@ Beyond standard JavaDoc (`@param`, `@return`, `@throws`, `@see`, ...), jMarkDoc 
 
 See `src/example/java/UserService.java` for a source file that exercises the full range of supported tags.
 
+## Requirement Traceability
+
+A method may carry one or more `@requirement` tags, each naming a stable [EARS](https://alistairmavin.com/ears/) requirement id from its capability spec (the [`/sbce`](https://airails.dev) traceability tag). jMarkDoc renders them as a **Requirements** section, one bullet per tag — the id as inline code, followed by an optional description:
+
+```java
+/// @requirement R1.1 create and store a new active account
+public User create(String name) { ... }
+```
+
+renders as:
+
+```markdown
+#### Requirements
+
+- `R1.1` — create and store a new active account
+```
+
 ## Tests
 
 The doclet itself stays JDK-only. Tests are test-scope only (jqwik + JUnit Platform, vendored under `lib/`) and never bundled into `jmarkdoc.jar`:

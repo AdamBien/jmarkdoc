@@ -113,6 +113,7 @@ public class UserService {
     /// @concurrency Concurrent creates are serialized by the backing map.
     /// @errorhandling Validates input before mutating state, so a rejected
     ///                request leaves the store unchanged.
+    /// @requirement R1.1 create and store a new active account
     public User create(String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("name must be non-blank");
@@ -137,6 +138,7 @@ public class UserService {
     /// @idempotency Idempotent; deactivating an already-inactive user has no
     ///              additional effect.
     /// @authorization Caller must hold the `accounts:write` permission.
+    /// @requirement R2.1 deactivate an existing account
     public void deactivate(long id) {
         User existing = findById(id);
         store.put(id, existing.deactivated());
