@@ -7,6 +7,24 @@ A custom JavaDoc doclet that generates clean Markdown API docs from Java source 
 - JDK 25+ (the doclet uses the `jdk.javadoc` and `jdk.compiler` modules)
 - [zb](https://github.com/AdamBien/zb) on the `PATH` to build the executable JAR — no Maven, Gradle, Ant, or third-party runtime libraries
 
+## Install
+
+To use a released build without cloning, run the single-file `installjmarkdoc` script. It downloads the latest executable JAR into `~/.jmarkdoc/` and installs the `jmarkdoc` launcher (with its classpath rewritten to the absolute JAR path) into `~/.local/bin` — or a `PATH` directory you pass as an argument:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/AdamBien/jMarkDoc/main/installjmarkdoc -o installjmarkdoc
+chmod +x installjmarkdoc
+./installjmarkdoc                 # or: ./installjmarkdoc /usr/local/bin
+```
+
+Then, with the install directory on your `PATH`:
+
+```bash
+jmarkdoc src/main/java target/site/apidocs
+```
+
+The rest of this README covers building from source.
+
 ## Build and Generate
 
 Build the executable JAR with [zb](https://github.com/AdamBien/zb):
