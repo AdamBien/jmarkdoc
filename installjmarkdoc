@@ -28,7 +28,7 @@ void main(String... args) throws Exception {
                   Downloads the jMarkDoc executable JAR (latest release) and the
                   jmarkdoc launcher, then installs the launcher so it runs anywhere.
                   binDir    directory on your PATH for the launcher
-                            (default: ~/.local/bin)
+                            (default: .)
                   -help     Show this help
                   -version  Show version
                 The JAR is stored in ~/.jmarkdoc/jmarkdoc.jar.
@@ -39,7 +39,7 @@ void main(String... args) throws Exception {
     var home = Path.of(System.getProperty("user.home"));
     var libDir = home.resolve(".jmarkdoc");
     var jarPath = libDir.resolve("jmarkdoc.jar");
-    var binDir = args.length > 0 ? Path.of(args[0]) : home.resolve(".local/bin");
+    var binDir = args.length > 0 ? Path.of(args[0]) : home.resolve(".");
     var launcherPath = binDir.resolve("jmarkdoc");
 
     Files.createDirectories(libDir);
