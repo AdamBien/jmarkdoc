@@ -17,6 +17,26 @@ The supported entry point is `buildAndRun.sh`. It cleans `build/` and `target/`,
 
 On success it prints the paths of the generated `*.md` files.
 
+## Executable JAR
+
+A doclet is not directly runnable — it is a callback the `javadoc` tool loads and invokes. `airhacks.jmarkdoc.Main` wraps it in a launcher that runs the documentation tool in-process with the doclet baked in, so no doclet arguments are needed. Build the executable JAR with [zb](https://github.com/AdamBien/zb):
+
+```bash
+zb.sh
+```
+
+This produces `zbo/jmarkdoc.jar`. Run it with no arguments to document `src/main/java` into `target/site/apidocs` (the default Maven JavaDoc output directory):
+
+```bash
+java -jar zbo/jmarkdoc.jar
+```
+
+The source and output directories are optional positional arguments:
+
+```bash
+java -jar zbo/jmarkdoc.jar src/example/java target/example-md
+```
+
 ## Run Against Your Own Sources
 
 Point the `javadoc` tool at the packaged doclet and your sources:

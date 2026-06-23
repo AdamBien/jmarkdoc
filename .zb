@@ -1,0 +1,5 @@
+classes.dir=<temp.dir>
+jar.dir=zbo/
+jar.file.name=jmarkdoc.jar
+resources.dir=<discovered by zb>
+sources.dir=<discovered by zb>
