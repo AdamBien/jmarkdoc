@@ -137,7 +137,8 @@ public final class MarkdownRenderer {
      * <p>The function is pure: deterministic and free of I/O. A {@code null}
      * field, or {@code null}/empty components, are tolerated. The name and type
      * are emitted inside inline-code spans and so are not escaped; the
-     * description is literal prose and is escaped with {@link #escape(String)}.
+     * description is authored Markdown and is rendered with
+     * {@link #renderDescription(String)}.
      *
      * <p>Example output:
      * <pre>
@@ -162,7 +163,7 @@ public final class MarkdownRenderer {
         entry.append("\n");
         var description = field.description();
         if (description != null && !description.isEmpty()) {
-            entry.append("\n").append(escape(description)).append("\n");
+            entry.append("\n").append(processInlineTags(description)).append("\n");
         }
         return entry.toString();
     }
@@ -240,10 +241,10 @@ public final class MarkdownRenderer {
      * <p>The pre-rendered {@link MemberDoc#signature()} (typically produced by
      * {@link #formatSignature}) is emitted verbatim inside an inline-code span
      * and is therefore not escaped. Prose — the body description and each
-     * parameter, return, and throws description — is literal text and is run
-     * through {@link #escape(String)}; parameter names, parameter types, and
-     * exception types live inside inline-code spans and so are emitted
-     * verbatim. The Agent Notes block is delegated to
+     * parameter, return, and throws description — is authored Markdown and is
+     * rendered with {@link #renderDescription(String)}; parameter names,
+     * parameter types, and exception types live inside inline-code spans and so
+     * are emitted verbatim. The Agent Notes block is delegated to
      * {@link #renderAgentNotes(AgentNotes)}, which omits itself when no
      * contract content is present.
      *
@@ -287,7 +288,7 @@ public final class MarkdownRenderer {
         entry.append("### `").append(nullToEmpty(method.signature())).append("`\n");
         var description = method.description();
         if (description != null && !description.isEmpty()) {
-            entry.append("\n").append(escape(description)).append("\n");
+            entry.append("\n").append(processInlineTags(description)).append("\n");
         }
         appendParameters(entry, method.params());
         appendReturns(entry, method.returns());
@@ -348,7 +349,7 @@ public final class MarkdownRenderer {
             }
             var description = parameter.description();
             if (description != null && !description.isEmpty()) {
-                section.append(" — ").append(escape(description));
+                section.append(" — ").append(processInlineTags(description));
             }
             section.append('\n');
         }
@@ -365,7 +366,7 @@ public final class MarkdownRenderer {
         if (returns == null || returns.isEmpty()) {
             return;
         }
-        entry.append("\n#### Returns\n\n").append(escape(returns.get())).append('\n');
+        entry.append("\n#### Returns\n\n").append(processInlineTags(returns.get())).append('\n');
     }
 
     /**
@@ -386,7 +387,7 @@ public final class MarkdownRenderer {
             section.append("- `").append(nullToEmpty(entryDoc.exceptionType())).append('`');
             var description = entryDoc.description();
             if (description != null && !description.isEmpty()) {
-                section.append(" — ").append(escape(description));
+                section.append(" — ").append(processInlineTags(description));
             }
             section.append('\n');
         }
@@ -418,8 +419,8 @@ public final class MarkdownRenderer {
      * <p>Inline tags embedded in {@code content} are always processed, never
      * emitted as raw tag syntax: {@code {@code x}} becomes {@code `x`} and
      * {@code {@link X}} becomes a readable reference. Literal prose in the
-     * content is run through {@link #escape(String)}; inline-code contents are
-     * emitted verbatim. The leading {@code @} of a tag name is stripped, so no
+     * content is authored Markdown and passes through verbatim. The leading
+     * {@code @} of a tag name is stripped, so no
      * raw block-tag syntax (for example {@code @param}) ever appears in the
      * output.
      *
@@ -456,9 +457,9 @@ public final class MarkdownRenderer {
      * this exact order with these exact labels (Requirement 7.2):
      * Preconditions, Postconditions, Side effects, Idempotency, Authorization,
      * Transactions, Concurrency, Thread-safety, Error handling. Each present
-     * section is emitted as {@code - **Label:** <escaped content>}, where the
-     * content is the verbatim text from the source comment run through
-     * {@link #escape(String)} so it renders as literal prose and round-trips.
+     * section is emitted as {@code - **Label:** <content>}, where the content is
+     * the authored Markdown from the source comment, rendered with
+     * {@link #renderDescription(String)}.
      *
      * <p>The renderer never invents content: a section appears in the output if
      * and only if it is present in {@code notes}. When {@link AgentNotes#isEmpty()}
@@ -499,17 +500,17 @@ public final class MarkdownRenderer {
     }
 
     /**
-     * Appends a single contract bullet ({@code - **Label:** <escaped content>})
-     * to {@code block} when {@code content} is present. The label is fixed
-     * structural text emitted verbatim; the content is literal prose and is
-     * escaped with {@link #escape(String)}.
+     * Appends a single contract bullet ({@code - **Label:** <content>}) to
+     * {@code block} when {@code content} is present. The label is fixed
+     * structural text emitted verbatim; the content is authored Markdown and is
+     * rendered with {@link #renderDescription(String)}.
      */
     private static void appendContractBullet(StringBuilder block, String label, Optional<String> content) {
         if (content == null || content.isEmpty()) {
             return;
         }
         block.append("- **").append(label).append(":** ")
-                .append(escape(content.get()))
+                .append(processInlineTags(content.get()))
                 .append('\n');
     }
 
@@ -535,11 +536,35 @@ public final class MarkdownRenderer {
     }
 
     /**
+     * Renders authored doc-comment prose to Markdown: literal text is emitted
+     * verbatim and any embedded inline JavaDoc tags are converted to their
+     * Markdown equivalents via {@link #processInlineTags(String)}.
+     *
+     * <p>Doc comments — and especially Java&nbsp;23+ Markdown ({@code ///})
+     * comments — are authored as Markdown, so their prose must pass through
+     * unchanged: a heading, list, or backtick the developer wrote is intentional
+     * formatting, not literal text to be neutralized. Escaping it (as an earlier
+     * version did) turned {@code ## Heading} into {@code \#\# Heading} and
+     * {@code `code`} into {@code \`code\`}. Only structural identifiers the
+     * renderer emits around this prose (type names, kinds, fixed labels) are
+     * still treated as literal.
+     *
+     * <p>The function is pure, total, and free of I/O; a {@code null} input
+     * yields an empty string.
+     *
+     * @param text the authored prose, possibly containing inline tags; may be
+     *             {@code null}
+     * @return the prose rendered as Markdown
+     */
+    public static String renderDescription(String text) {
+        return processInlineTags(text);
+    }
+
+    /**
      * Converts inline JavaDoc tags ({@code {@code ...}}, {@code {@literal ...}},
      * {@code {@link ...}}, {@code {@linkplain ...}}) embedded in {@code text}
-     * into Markdown, escaping the surrounding literal prose. Inline-code
-     * contents are emitted verbatim; everything else is escaped. Any other
-     * inline tag is replaced by its (escaped) body so no raw {@code {@...}}
+     * into Markdown, passing the surrounding prose through verbatim as Markdown.
+     * Any other inline tag is replaced by its body so no raw {@code {@...}}
      * syntax survives.
      */
     private static String processInlineTags(String text) {
@@ -552,14 +577,14 @@ public final class MarkdownRenderer {
         while (index < source.length()) {
             var open = source.indexOf("{@", index);
             if (open < 0) {
-                out.append(escape(source.substring(index)));
+                out.append(source.substring(index));
                 break;
             }
-            out.append(escape(source.substring(index, open)));
+            out.append(source, index, open);
             var close = source.indexOf('}', open);
             if (close < 0) {
                 // Unterminated inline tag: treat the remainder as literal prose.
-                out.append(escape(source.substring(open)));
+                out.append(source.substring(open));
                 break;
             }
             var inner = source.substring(open + 2, close);
@@ -573,7 +598,7 @@ public final class MarkdownRenderer {
                     }
                 }
                 case "link", "linkplain" -> out.append(formatLinkReference(body));
-                default -> out.append(escape(body));
+                default -> out.append(body);
             }
             index = close + 1;
         }
@@ -594,7 +619,7 @@ public final class MarkdownRenderer {
         var reference = split < 0 ? body : body.substring(0, split);
         var label = split < 0 ? "" : body.substring(split + 1).strip();
         if (!label.isEmpty()) {
-            return escape(label);
+            return label;
         }
         return "`" + reference.replace('#', '.') + "`";
     }

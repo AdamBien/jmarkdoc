@@ -163,7 +163,7 @@ public final class MarkdownDoclet implements Doclet {
         }
         var document = new StringBuilder();
         document.append(MarkdownRenderer.formatPackage(documentedPackage.getQualifiedName().toString()));
-        document.append('\n').append(MarkdownRenderer.escape(description)).append('\n');
+        document.append('\n').append(MarkdownRenderer.renderDescription(description)).append('\n');
         return Optional.of(document.toString());
     }
 
@@ -179,7 +179,7 @@ public final class MarkdownDoclet implements Doclet {
 
         var description = docReader.fullBody(type);
         if (!description.isEmpty()) {
-            document.append('\n').append(MarkdownRenderer.escape(description)).append('\n');
+            document.append('\n').append(MarkdownRenderer.renderDescription(description)).append('\n');
         }
 
         appendFields(document, type, docReader);

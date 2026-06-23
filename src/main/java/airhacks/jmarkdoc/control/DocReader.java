@@ -12,9 +12,11 @@ import com.sun.source.doctree.DeprecatedTree;
 import com.sun.source.doctree.DocCommentTree;
 import com.sun.source.doctree.DocTree;
 import com.sun.source.doctree.ParamTree;
+import com.sun.source.doctree.RawTextTree;
 import com.sun.source.doctree.ReturnTree;
 import com.sun.source.doctree.SeeTree;
 import com.sun.source.doctree.SinceTree;
+import com.sun.source.doctree.TextTree;
 import com.sun.source.doctree.ThrowsTree;
 import com.sun.source.doctree.UnknownBlockTagTree;
 import com.sun.source.util.DocTrees;
@@ -165,6 +167,15 @@ public final class DocReader {
     /**
      * Renders a list of doc-tree fragments to plain text, tolerating a
      * {@code null} or empty list.
+     *
+     * <p>Plain-text and Markdown ({@code ///}) fragments are taken verbatim from
+     * their content accessors. Falling back to {@link DocTree#toString()} — as an
+     * earlier version did for every fragment — is wrong for text, because the
+     * doc-tree pretty printer Java-escapes non-ASCII characters (an em dash
+     * {@code —} becomes the literal six characters {@code \\u2014}). Inline tag
+     * fragments ({@code {@code ...}}, {@code {@link ...}}) have no dedicated
+     * accessor here and keep their {@code toString()} {@code {@...}} form so the
+     * renderer's inline-tag pass can turn them into Markdown.
      */
     private static String textOf(List<? extends DocTree> fragments) {
         if (fragments == null || fragments.isEmpty()) {
@@ -173,9 +184,23 @@ public final class DocReader {
         var text = new StringBuilder();
         for (var fragment : fragments) {
             if (fragment != null) {
-                text.append(fragment.toString());
+                text.append(render(fragment));
             }
         }
         return text.toString().trim();
+    }
+
+    /**
+     * Returns the verbatim content of a single doc-tree fragment, preserving
+     * non-ASCII characters. Text and Markdown fragments expose their content
+     * directly; any other fragment (an inline tag, an HTML element) keeps its
+     * {@code toString()} form for the renderer to interpret.
+     */
+    private static String render(DocTree fragment) {
+        return switch (fragment) {
+            case RawTextTree markdown -> markdown.getContent();
+            case TextTree text -> text.getBody();
+            default -> fragment.toString();
+        };
     }
 }
