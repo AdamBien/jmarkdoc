@@ -12,7 +12,7 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 
 String name = MethodHandles.lookup().lookupClass().getName();
-String version = "2026-06-23.1";
+String version = "2026-06-23.2";
 
 String jarURL = "https://github.com/AdamBien/jMarkDoc/releases/latest/download/jmarkdoc.jar";
 String launcherURL = "https://raw.githubusercontent.com/AdamBien/jMarkDoc/main/jmarkdoc";
@@ -24,26 +24,24 @@ void main(String... args) throws Exception {
     }
     if (args.length > 0 && args[0].equals("-help")) {
         IO.println("""
-                Usage: %s [binDir]
-                  Downloads the jMarkDoc executable JAR (latest release) and the
-                  jmarkdoc launcher, then installs the launcher so it runs anywhere.
-                  binDir    directory on your PATH for the launcher
-                            (default: .)
+                Usage: %s [dir]
+                  Downloads the jMarkDoc executable JAR (latest release) into
+                  dir/zbo and the jmarkdoc launcher into dir, then makes the
+                  launcher executable with its classpath pointing at the
+                  downloaded JAR so it runs from anywhere.
+                  dir       target directory: JAR -> dir/zbo, launcher -> dir
+                            (default: current directory)
                   -help     Show this help
                   -version  Show version
-                The JAR is stored in ~/.jmarkdoc/jmarkdoc.jar.
                 """.formatted(name));
         return;
     }
 
-    var home = Path.of(System.getProperty("user.home"));
-    var libDir = home.resolve(".jmarkdoc");
-    var jarPath = libDir.resolve("jmarkdoc.jar");
-    var binDir = args.length > 0 ? Path.of(args[0]) : home.resolve(".");
-    var launcherPath = binDir.resolve("jmarkdoc");
+    var installDir = args.length > 0 ? Path.of(args[0]) : Path.of(".");
+    var jarPath = installDir.resolve("zbo").resolve("jmarkdoc.jar").toAbsolutePath().normalize();
+    var launcherPath = installDir.resolve("jmarkdoc");
 
-    Files.createDirectories(libDir);
-    Files.createDirectories(binDir);
+    Files.createDirectories(jarPath.getParent());
 
     var http = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build();
 
@@ -55,7 +53,7 @@ void main(String... args) throws Exception {
 
     // Rewrite the launcher's project-relative classpath to the installed JAR so
     // it resolves the doclet from any working directory.
-    var installed = launcher.replace("-cp zbo/jmarkdoc.jar", "-cp " + jarPath.toAbsolutePath());
+    var installed = launcher.replace("-cp zbo/jmarkdoc.jar", "-cp " + jarPath);
     Files.writeString(launcherPath, installed);
     makeExecutable(launcherPath);
 
@@ -64,7 +62,7 @@ void main(String... args) throws Exception {
               JAR      %s
               launcher %s
             Make sure %s is on your PATH, then run: jmarkdoc -help
-            """.formatted(jarPath, launcherPath, binDir));
+            """.formatted(jarPath, launcherPath, installDir.toAbsolutePath().normalize()));
 }
 
 String fetchText(HttpClient http, String url) throws IOException, InterruptedException {

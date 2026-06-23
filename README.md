@@ -9,12 +9,12 @@ A custom JavaDoc doclet that generates clean Markdown API docs from Java source 
 
 ## Install
 
-To use a released build without cloning, run the single-file `installjmarkdoc` script. It downloads the latest executable JAR into `~/.jmarkdoc/` and installs the `jmarkdoc` launcher (with its classpath rewritten to the absolute JAR path) into `~/.local/bin` — or a `PATH` directory you pass as an argument:
+To use a released build without cloning, run the single-file `installjmarkdoc` script. It downloads the latest executable JAR into the current directory's `zbo/` folder and installs the `jmarkdoc` launcher into the current directory (with the launcher's classpath rewritten to the absolute JAR path so it runs from anywhere) — or into a directory you pass as an argument:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/AdamBien/jMarkDoc/main/installjmarkdoc -o installjmarkdoc
 chmod +x installjmarkdoc
-./installjmarkdoc                 # or: ./installjmarkdoc /usr/local/bin
+./installjmarkdoc                 # current directory — or: ./installjmarkdoc /usr/local/bin
 ```
 
 Then, with the install directory on your `PATH`:
