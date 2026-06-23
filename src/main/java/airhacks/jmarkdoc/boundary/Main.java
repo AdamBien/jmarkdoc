@@ -1,4 +1,4 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.boundary;
 
 import java.io.IOException;
 import java.nio.file.Files;

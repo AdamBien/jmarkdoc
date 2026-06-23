@@ -1,4 +1,4 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.boundary;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,6 +20,16 @@ import javax.lang.model.element.VariableElement;
 import jdk.javadoc.doclet.Doclet;
 import jdk.javadoc.doclet.DocletEnvironment;
 import jdk.javadoc.doclet.Reporter;
+
+import airhacks.jmarkdoc.control.DocReader;
+import airhacks.jmarkdoc.control.ElementCollector;
+import airhacks.jmarkdoc.control.MarkdownRenderer;
+import airhacks.jmarkdoc.control.MarkdownWriter;
+import airhacks.jmarkdoc.entity.AgentNotes;
+import airhacks.jmarkdoc.entity.FieldDoc;
+import airhacks.jmarkdoc.entity.MemberDoc;
+import airhacks.jmarkdoc.entity.ParamDoc;
+import airhacks.jmarkdoc.entity.ThrowsDoc;
 
 /**
  * The jMarkDoc entry point: a {@link Doclet} that renders one Markdown file per

@@ -1,4 +1,4 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.control;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -29,7 +29,7 @@ import com.sun.source.util.DocTrees;
  * than raising a {@link NullPointerException}. This guarantees that rendering
  * is robust to missing documentation (Requirement 11.1).
  */
-final class DocReader {
+public final class DocReader {
 
     private final DocTrees docTrees;
 

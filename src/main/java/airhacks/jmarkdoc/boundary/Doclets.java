@@ -1,4 +1,4 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.boundary;
 
 /**
  * Package placeholder and home for shared Doclet constants.

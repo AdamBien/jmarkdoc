@@ -9,5 +9,5 @@ module jmarkdoc {
     requires jdk.javadoc;
     requires jdk.compiler;
 
-    exports airhacks.jmarkdoc;
+    exports airhacks.jmarkdoc.boundary;
 }

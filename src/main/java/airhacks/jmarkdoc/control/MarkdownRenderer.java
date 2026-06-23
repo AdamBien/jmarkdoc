@@ -1,8 +1,14 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.control;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+
+import airhacks.jmarkdoc.entity.AgentNotes;
+import airhacks.jmarkdoc.entity.FieldDoc;
+import airhacks.jmarkdoc.entity.MemberDoc;
+import airhacks.jmarkdoc.entity.ParamDoc;
+import airhacks.jmarkdoc.entity.ThrowsDoc;
 
 /**
  * Pure rendering helpers that turn program elements and their JavaDoc comment

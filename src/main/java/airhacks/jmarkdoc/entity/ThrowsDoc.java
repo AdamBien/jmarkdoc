@@ -1,4 +1,6 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.entity;
+
+import airhacks.jmarkdoc.control.MarkdownRenderer;
 
 /**
  * A single thrown exception entry for a method or constructor, sourced from a

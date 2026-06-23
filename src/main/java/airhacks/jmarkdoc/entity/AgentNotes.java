@@ -1,6 +1,8 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.entity;
 
 import java.util.Optional;
+
+import airhacks.jmarkdoc.control.MarkdownRenderer;
 
 /**
  * The fixed, ordered set of nine contract sections extracted from a method's

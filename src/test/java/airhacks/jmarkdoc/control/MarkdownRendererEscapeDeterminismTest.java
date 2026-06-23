@@ -1,4 +1,4 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.control;
 
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;

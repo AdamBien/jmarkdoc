@@ -1,4 +1,4 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.boundary;
 
 import java.nio.file.Path;
 import java.util.List;

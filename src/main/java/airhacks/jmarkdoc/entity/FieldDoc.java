@@ -1,4 +1,6 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.entity;
+
+import airhacks.jmarkdoc.control.MarkdownRenderer;
 
 /**
  * A single field, enum constant, or record component, after extraction from the

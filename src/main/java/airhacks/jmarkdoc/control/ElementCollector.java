@@ -1,4 +1,4 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.control;
 
 import java.util.Comparator;
 import java.util.List;

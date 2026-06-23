@@ -1,4 +1,6 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.entity;
+
+import airhacks.jmarkdoc.control.MarkdownRenderer;
 
 /**
  * A single method or constructor parameter, after extraction from the program

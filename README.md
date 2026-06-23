@@ -39,7 +39,7 @@ The same `zbo/jmarkdoc.jar` doubles as a doclet JAR. Point the `javadoc` tool at
 
 ```bash
 javadoc \
-  -doclet airhacks.jmarkdoc.MarkdownDoclet \
+  -doclet airhacks.jmarkdoc.boundary.MarkdownDoclet \
   -docletpath zbo/jmarkdoc.jar \
   --output target/site/apidocs \
   $(find src/main/java -name '*.java')
@@ -60,7 +60,7 @@ Plug the same JAR into the `maven-javadoc-plugin` as a custom doclet. Point `doc
   <groupId>org.apache.maven.plugins</groupId>
   <artifactId>maven-javadoc-plugin</artifactId>
   <configuration>
-    <doclet>airhacks.jmarkdoc.MarkdownDoclet</doclet>
+    <doclet>airhacks.jmarkdoc.boundary.MarkdownDoclet</doclet>
     <docletPath>${project.basedir}/zbo/jmarkdoc.jar</docletPath>
     <useStandardDocletOptions>false</useStandardDocletOptions>
     <additionalOptions>

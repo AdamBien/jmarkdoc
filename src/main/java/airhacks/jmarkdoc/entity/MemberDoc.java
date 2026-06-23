@@ -1,8 +1,10 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.entity;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import airhacks.jmarkdoc.control.MarkdownRenderer;
 
 /**
  * A single documented method or constructor, after extraction from the program

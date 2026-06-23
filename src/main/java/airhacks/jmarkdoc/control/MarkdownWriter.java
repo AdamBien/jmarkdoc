@@ -1,4 +1,4 @@
-package airhacks.jmarkdoc;
+package airhacks.jmarkdoc.control;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
