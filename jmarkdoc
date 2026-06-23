@@ -1,0 +1,27 @@
+#!/usr/bin/env -S java --source 25 -cp zbo/jmarkdoc.jar
+
+import java.lang.invoke.MethodHandles;
+
+import airhacks.jmarkdoc.boundary.Main;
+
+String name = MethodHandles.lookup().lookupClass().getName();
+String version = "2026-06-23.1";
+
+void main(String... args) throws Exception {
+    IO.println(name + " " + version);
+    if (args.length > 0 && args[0].equals("-version")) {
+        return;
+    }
+    if (args.length > 0 && args[0].equals("-help")) {
+        IO.println("""
+                Usage: %s [sourceDir] [outputDir]
+                  Generates Markdown API docs from Java sources via the jMarkDoc doclet.
+                  sourceDir   Java sources to document (default: src/main/java)
+                  outputDir   target for the Markdown (default: target/site/apidocs)
+                  -help       Show this help
+                  -version    Show version
+                """.formatted(name));
+        return;
+    }
+    Main.main(args);
+}
