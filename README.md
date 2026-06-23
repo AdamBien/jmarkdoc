@@ -15,7 +15,7 @@ Build the executable JAR with [zb](https://github.com/AdamBien/zb):
 zb.sh
 ```
 
-This compiles the sources into `zbo/jmarkdoc.jar`. A doclet is not directly runnable — it is a callback the `javadoc` tool loads and invokes — so `airhacks.jmarkdoc.Main` wraps it in a launcher that runs the documentation tool in-process with the doclet baked in. Run the JAR with no arguments to document `src/main/java` into `target/site/apidocs` (the default Maven JavaDoc output directory):
+This compiles the sources into `zbo/jmarkdoc.jar`. A doclet is not directly runnable — it is a callback the `javadoc` tool loads and invokes — so `airhacks.jmarkdoc.boundary.Main` wraps it in a launcher that runs the documentation tool in-process with the doclet baked in. Run the JAR with no arguments to document `src/main/java` into `target/site/apidocs` (the default Maven JavaDoc output directory):
 
 ```bash
 java -jar zbo/jmarkdoc.jar
@@ -32,6 +32,16 @@ The `buildAndRun.sh` convenience script chains both steps — it builds with `zb
 ```bash
 ./buildAndRun.sh
 ```
+
+For day-to-day use from the project root, the single-file `jmarkdoc` script (Java 25 source-file mode) wraps the built JAR and takes the same optional arguments:
+
+```bash
+./jmarkdoc                                # src/main/java -> target/site/apidocs
+./jmarkdoc src/example/java target/example-md
+./jmarkdoc -help
+```
+
+It resolves the doclet from `zbo/jmarkdoc.jar` on its shebang classpath, so run `zb.sh` first and invoke it from the project root.
 
 ## Run Against Your Own Sources
 
