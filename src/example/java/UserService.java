@@ -53,7 +53,7 @@ public class UserService {
     /// @precondition `store` must not be `null`.
     /// @postcondition The service holds a reference to the supplied store; no
     ///                defensive copy is made.
-    public UserService(java.util.Map<Long, User> store) {
+    public UserService(@NotNull java.util.Map<Long, User> store) {
         this.store = java.util.Objects.requireNonNull(store, "store");
     }
 
